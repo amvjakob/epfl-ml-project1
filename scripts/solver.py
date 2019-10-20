@@ -26,6 +26,7 @@ def gradient_descent(function_object, w, max_evaluations, verbose=False, *args):
     f, g = function_object(w, *args)
     evals = 0
     gamma = 1.
+    gamma_is_inf = 1.
 
     while True:
         # line-search using quadratic interpolation to
@@ -51,6 +52,7 @@ def gradient_descent(function_object, w, max_evaluations, verbose=False, *args):
             # update step size
             if np.isinf(f_new):
                 gamma = 1. / (10 ** w_evals)
+                gamma_is_inf = gamma
             else:
                 gamma = (gamma ** 2) * gg / (2. * (f_new - f + gamma * gg))
 
@@ -63,9 +65,9 @@ def gradient_descent(function_object, w, max_evaluations, verbose=False, *args):
         gamma = -gamma * np.dot(y.T, g) / np.dot(y.T, y)
 
         # safety guards
-        if np.isnan(gamma) or gamma < 1e-13 or gamma > 1e13:
+        if np.isnan(gamma) or gamma < 1e-60 or gamma > 1e10:
             if verbose: print(f"Gamma value out of bounds: {gamma}")
-            gamma = 1.
+            gamma = gamma_is_inf
 
         # update weights / loss / gradient
         w = w_new
@@ -146,7 +148,7 @@ def gradient_descent_L1(function_object, w, L1_lambda, max_evaluations, *args, v
         alpha = -alpha * np.dot(y.T, g) / np.dot(y.T, y)
 
         # safety guards
-        if np.isnan(alpha) or alpha < 1e-10 or alpha > 1e10:
+        if np.isnan(alpha) or alpha < 1e-30 or alpha > 1e10:
             alpha = 1.
 
         # update weights / loss / gradient

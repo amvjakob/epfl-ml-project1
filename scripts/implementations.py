@@ -39,6 +39,23 @@ def replace_NaN_by_mean(x):
             
     return x
 
+def replace_NaN_by_median(x):
+    """
+    Replaces the -999 values of x by the median of that feature vector
+
+    :param x: data
+    """
+    n,d = x.shape
+    
+    for j in range(d):
+        # get examples where the feature j is NaN
+        positions = x[:,j] == -999
+        if np.sum(positions) > 0:
+            # replace NaN values by mean based on non-NaN examples
+            x[positions,j] = np.median(x[~positions,j])
+            
+    return x
+
 def remove_features(data, features, feats, verbose=False):
     """
     This function removes features from the data and the features list
@@ -561,7 +578,6 @@ def kernel_poly(X1, X2, p=2):
     N1, D1 = np.shape(X1)
     N2, D2 = np.shape(X2)
     return np.power(np.ones((N1, N2)) + X1@X2.T, p)
-
 
 def kernel_predict(kernel_fun, y, X, Xtest, *args, lambda_=0):
     K = kernel_fun(X, X, *args)
