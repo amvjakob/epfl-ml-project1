@@ -4,15 +4,39 @@
 import numpy as np
 import math
 
-def standardize(x):
+def standardize(x, mean=None, std=None):
     """
     Standardizes a data matrix.
 
     :param x: data
+    :param mean: mean used for standardization
+    :param std: standard deviation used for standardization
     :return: standardized data
     """
+    
+    if not mean:
+        mean = np.mean(x, axis=0)
+    
+    if not std:
+        std = np.std(x, axis=0)
+    
+    return x, mean, std
 
-    x = (x - np.mean(x, axis=0)) / np.std(x, axis=0)
+def replace_NaN_by_mean(x):
+    """
+    Replaces the -999 values of x by the mean of that feature vector
+
+    :param x: data
+    """
+    n,d = x.shape
+    
+    for j in range(d):
+        # get examples where the feature j is NaN
+        positions = x[:,j] == -999
+        if np.sum(positions) > 0:
+            # replace NaN values by mean based on non-NaN examples
+            x[positions,j] = np.mean(x[~positions,j])
+            
     return x
 
 def remove_features(data, features, feats, verbose=False):
