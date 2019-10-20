@@ -63,7 +63,8 @@ def gradient_descent(function_object, w, max_evaluations, verbose=False, *args):
         gamma = -gamma * np.dot(y.T, g) / np.dot(y.T, y)
 
         # safety guards
-        if np.isnan(gamma) or gamma < 1e-10 or gamma > 1e10:
+        if np.isnan(gamma) or gamma < 1e-13 or gamma > 1e13:
+            if verbose: print(f"Gamma value out of bounds: {gamma}")
             gamma = 1.
 
         # update weights / loss / gradient
