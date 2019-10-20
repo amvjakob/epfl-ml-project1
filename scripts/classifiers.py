@@ -233,11 +233,11 @@ class LogisticRegressionKernel(Kernel):
             yKu = y * K.dot(u)
 
             # function value
-            f = np.sum(log_1_plus_exp_safe(-yKu))
+            f = 1/len(y) * np.sum(log_1_plus_exp_safe(-yKu))
 
             # gradient value
             res = - y / (1. + np.exp(yKu))
-            g = K.T.dot(res)
+            g = 1/len(y) * K.T.dot(res)
 
             # add regularization terms
             if lambda_ > 0:
