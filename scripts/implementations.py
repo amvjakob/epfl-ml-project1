@@ -78,7 +78,24 @@ def remove_features(data, features, feats, verbose=False):
     if verbose:
         print("Features removed:", *removed, sep='\n')
 
-    return np.delete(data, idx_to_remove, 1), np.delete(features, idx_to_remove)
+    return np.delete(data, idx_to_remove, 1), np.delete(features, idx_to_remove) 
+
+def remove_features_on_pct(data, features, pct_sup verbose=False):
+    """
+    This function removes features from the data and the features list
+    depending on the percentage of NaN they contain
+
+    :param data: tX data
+    :param features: list of all features from load_csv
+    :param verbose: output list of features successfully removed
+    :return: new data, new features, feats
+    """
+    perc=(data[:, :]<= -999.0).sum(axis=0)/data.shape[0]*100
+    feats = np.array(features)
+    feats = feats[np.array(perc>pct_sup)]
+    new_data,new_features = remove_features(tX, features, feats, verbose)
+
+    return new_data, new_features, feats
 
 def binarize_undefined(data, features, feats, verbose=False):
     """
@@ -403,6 +420,33 @@ def cross_validate(y, tx, classifier, ratio, n_iter):
     
     return accuracy
 
+def cross_validation_kfold(model, y, x, k_fold):
+    """
+    Cross Validate with k fold, without shuffling dataset
+
+    :param y: y
+    :param tx: data
+    :param classifier: classifier for model fitting
+    :param train: train function (fitting function)
+    :param predict: prediction function
+    :param k_fold: numbers of folds chosen
+    :return: accuracy
+    """
+
+    accuracies = []
+    # Splitting indices in fold
+    ind = build_k_indices(x,k_fold)
+    # Computations for each split in train and test
+    for i in range(0,k_fold):
+        ind_sort= np.sort(ind[i])
+        ind_opp=np.array(sorted(set(range(0, x.shape[0])).difference(ind_sort)))
+        xtrain, xtest = x[ind_opp], x[ind[i]]
+        ytrain, ytest = y[ind_opp], y[ind[i]]
+        model.fit(ytrain, xtrain)
+        y_pred = model.predict(xtest)
+        accuracies.append(compute_accuracy(y_pred, ytest))
+    return accuracies
+
 def find_max_hyperparam(classifier, lambdas):
     """
     Find Max Hyperparam
@@ -586,3 +630,23 @@ def kernel_predict(kernel_fun, y, X, Xtest, *args, lambda_=0):
     u = np.linalg.solve(K + lambda_ * np.eye(len(y)), y)
     
     return np.sign(Ktest @ u)
+
+def model_comparison(classifier,y,x,k_fold):
+    names = []
+    result =[]
+    for model_name, model in classifier:  
+        score = np.array(cross_validation_kfold(model,y,x,k_fold))
+        result.append(score)
+        names.append(model_name)
+        print_message = "%s: Mean=%f STD=%f" % (model_name, score.mean(), score.std())
+        print(print_message)
+
+    fig = plt.figure()
+    fig.suptitle('Model Comparison')
+    ax = fig.add_subplot(111)
+    plt.boxplot(result)
+    ax.set_xticklabels(names)
+    plt.show()
+    return result, names
+
+
