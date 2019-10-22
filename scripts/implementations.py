@@ -121,7 +121,7 @@ def binarize_undefined(data, features, feats, verbose=False):
             idx_to_analyze = features.index(feat)
 
             # expand data with 1 where value is defined, 0 where value is undefined
-            data = np.c_[data, data[:, 2*(idx_to_analyze] != -999) - 1]
+            data = np.c_[data, data[:, 2*(idx_to_analyze != -999) - 1]]
 
             # add feature name
             features.append(features[idx_to_analyze] + "_NAN_BINARIZED")
