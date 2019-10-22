@@ -22,6 +22,24 @@ def standardize(x, mean=None, std=None):
     
     return x, mean, std
 
+def remove_NaN_features(x, threshold=0.0):
+    """
+    Removes the feature if it has more than a certain threshold of -999 value
+
+    :param x: data
+    :param threshold: data
+    """
+    n,d = x.shape
+    result = []
+    
+    for j in range(d):
+        # get examples where the feature j is NaN
+        positions = x[:,j] == -999
+        if np.mean(positions) < threshold:
+            result = np.c_[result, x[:,j]]
+            
+    return result
+
 def replace_NaN_by_mean(x):
     """
     Replaces the -999 values of x by the mean of that feature vector
