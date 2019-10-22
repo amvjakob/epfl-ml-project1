@@ -78,8 +78,7 @@ class LeastSquares:
         """
 
         return np.sign(X @ self.w)
-    
-    
+
 class LogisticRegression:
     """Logistic Regression"""
 
@@ -191,8 +190,8 @@ class LogisticRegressionL2(LogisticRegression):
         :param verbose: print out information
         :param max_evaluations: maximum number of evaluations
         """
-        super(LogisticRegressionL2, self).__init__(verbose=verbose,
-                                                     max_evaluations=max_evaluations)
+        self.verbose = verbose
+        self.max_evaluations = max_evaluations
         self.lambda_ = lambda_
 
     def funObj(self, w, y, X):
