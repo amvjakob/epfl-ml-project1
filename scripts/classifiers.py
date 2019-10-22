@@ -5,6 +5,7 @@ import solver
 import numpy as np
 import math
 
+
 def log_1_plus_exp_safe(x):
     # compute log(1+exp(x)) in a numerically safe way, avoiding overflow/underflow issues
     out = np.log(1+np.exp(x))
@@ -184,6 +185,8 @@ class LogisticRegressionL2(LogisticRegression):
 
         return f, g
     
+    
+    
 class Kernel:
     """Kernel method"""
     
@@ -249,6 +252,30 @@ class LogisticRegressionKernel(Kernel):
         
         return u
     
+    
+class LogisticRegressionDecisionTree(LogisticRegression):
+    
+    def __init__(self, mass_idx, max_evaluations=100, verbose=False):
+        self.mass_idx = mass_idx
+        
+        super().__init__(max_evaluations=max_evaluations, verbose=verbose)
+    
+    def fit(self, y, X):
+        massNotNaN = X[:,self.mass_idx] != -999
+        
+        y_E = y[massNotNaN]
+        X_E = X[massNotNaN,:]
+        
+        super().fit(y, X)
+        
+        
+    def predict(self, X):
+        # compute regular prediction
+        y = np.sign(X @ self.w)
+        # set prediction to -1 if mass is NaN
+        y[X[:,self.mass_idx] == -999] = -1
+        
+        return y    
 
 class LeastSquaresKernel(Kernel):
     

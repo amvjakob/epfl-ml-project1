@@ -20,7 +20,7 @@ def standardize(x, mean=None, std=None):
     if not std:
         std = np.std(x, axis=0)
     
-    return x, mean, std
+    return (x - mean) / std, mean, std
 
 def remove_NaN_features(x, threshold=0.0):
     """
@@ -36,7 +36,8 @@ def remove_NaN_features(x, threshold=0.0):
         # get examples where the feature j is NaN
         positions = x[:,j] == -999
         if np.mean(positions) < threshold:
-            result = np.c_[result, x[:,j]]
+            if not result: result = x[:,j]
+            else: result = np.c_[result, x[:,j]]
             
     return result
 
@@ -47,15 +48,16 @@ def replace_NaN_by_mean(x):
     :param x: data
     """
     n,d = x.shape
+    result = x.copy()
     
-    for j in range(d):
+    for j in range(d):       
         # get examples where the feature j is NaN
-        positions = x[:,j] == -999
+        positions = result[:,j] == -999
         if np.sum(positions) > 0:
             # replace NaN values by mean based on non-NaN examples
-            x[positions,j] = np.mean(x[~positions,j])
+            result[positions] = np.mean(result[~positions,j])
             
-    return x
+    return result
 
 def replace_NaN_by_median(x):
     """
@@ -64,15 +66,16 @@ def replace_NaN_by_median(x):
     :param x: data
     """
     n,d = x.shape
+    result = x.copy()
     
-    for j in range(d):
+    for j in range(d):       
         # get examples where the feature j is NaN
-        positions = x[:,j] == -999
+        positions = result[:,j] == -999
         if np.sum(positions) > 0:
             # replace NaN values by mean based on non-NaN examples
-            x[positions,j] = np.median(x[~positions,j])
+            result[positions] = np.median(result[~positions,j])
             
-    return x
+    return result
 
 def remove_features(data, features, feats, verbose=False):
     """
@@ -146,7 +149,7 @@ def binarize_undefined(data, features, feats, verbose=False):
             done.append(feat)
 
     if verbose:
-        print("Features for whom additive binarization was performed:", *done, sep='\n')
+        print("Features for which additive binarization was performed:", *done, sep='\n')
 
     return data, features
 
