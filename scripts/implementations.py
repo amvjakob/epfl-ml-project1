@@ -22,6 +22,25 @@ def standardize(x, mean=None, std=None):
     
     return (x - mean) / std, mean, std
 
+def expand_2(X):    
+    """
+    Augments a matrix to the second degree
+    
+    :param X: data
+    :return: data augmented to second degree
+    """
+    result = X.copy()
+    result = np.c_[result, np.power(result, 2)]
+    n,d = X.shape
+    for j in range(d):
+        print(j)
+        
+        new = result[:,j][:,np.newaxis] * result[:,j+1:]
+        if len(new) > 0:
+            result = np.c_[result, new]
+        
+    return result
+
 def remove_NaN_features(x, threshold=0.0):
     """
     Removes the feature if it has more than a certain threshold of -999 value

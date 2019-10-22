@@ -151,6 +151,34 @@ class LogisticRegression:
         """
 
         return np.sign(X @ self.w)
+    
+
+class LogisticRegressionDecisionTree(LogisticRegression):
+    
+    def __init__(self, mass_idx, max_evaluations=100, verbose=False):
+        self.mass_idx = mass_idx
+        
+        super().__init__(max_evaluations=max_evaluations, verbose=verbose)
+    
+    """
+    def fit(self, y, X):
+        massNotNaN = X[:,self.mass_idx] != -999
+        
+        y_E = y[massNotNaN]
+        X_E = X[massNotNaN,:]
+        
+        super().fit(y_E, X_E)
+        """
+        
+        
+    def predict(self, X):
+        # compute regular prediction
+        y = np.sign(X @ self.w)
+        # set prediction to -1 if mass is NaN
+        y[X[:,self.mass_idx] == -999] = -1
+        
+        return y    
+
 
 class LogisticRegressionL2(LogisticRegression):
     """L2 Regularized Logistic Regression"""
@@ -253,30 +281,6 @@ class LogisticRegressionKernel(Kernel):
         return u
     
     
-class LogisticRegressionDecisionTree(LogisticRegression):
-    
-    def __init__(self, mass_idx, max_evaluations=100, verbose=False):
-        self.mass_idx = mass_idx
-        
-        super().__init__(max_evaluations=max_evaluations, verbose=verbose)
-    
-    def fit(self, y, X):
-        massNotNaN = X[:,self.mass_idx] != -999
-        
-        y_E = y[massNotNaN]
-        X_E = X[massNotNaN,:]
-        
-        super().fit(y, X)
-        
-        
-    def predict(self, X):
-        # compute regular prediction
-        y = np.sign(X @ self.w)
-        # set prediction to -1 if mass is NaN
-        y[X[:,self.mass_idx] == -999] = -1
-        
-        return y    
-
 class LeastSquaresKernel(Kernel):
     
     def fit(self, y, K, lambda_=0):
