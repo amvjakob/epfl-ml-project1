@@ -5,7 +5,6 @@ import solver
 import numpy as np
 import math
 
-
 def log_1_plus_exp_safe(x):
     # compute log(1+exp(x)) in a numerically safe way, avoiding overflow/underflow issues
     out = np.log(1+np.exp(x))
@@ -184,8 +183,6 @@ class LogisticRegressionL2(LogisticRegression):
         g += self.lambda_ * w
 
         return f, g
-    
-    
     
 class Kernel:
     """Kernel method"""

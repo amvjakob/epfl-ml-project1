@@ -420,7 +420,7 @@ def cross_validate(y, tx, classifier, ratio, n_iter):
     
     return accuracy
 
-def cross_validation_kfold(model, y, x, k_fold):
+def cross_validate_kfold(y, x, classifier, k_fold):
     """
     Cross Validate with k fold, without shuffling dataset
 
@@ -434,18 +434,36 @@ def cross_validation_kfold(model, y, x, k_fold):
     """
 
     accuracies = []
+
     # Splitting indices in fold
-    ind = build_k_indices(x,k_fold)
+    ind = build_k_indices(x, k_fold)
+
     # Computations for each split in train and test
-    for i in range(0,k_fold):
-        ind_sort= np.sort(ind[i])
-        ind_opp=np.array(sorted(set(range(0, x.shape[0])).difference(ind_sort)))
+    for i in range(0, k_fold):
+
+        ind_sort = np.sort(ind[i])
+        ind_opp = np.array(sorted(set(range(0, x.shape[0])).difference(ind_sort)))
+
         xtrain, xtest = x[ind_opp], x[ind[i]]
         ytrain, ytest = y[ind_opp], y[ind[i]]
-        model.fit(ytrain, xtrain)
-        y_pred = model.predict(xtest)
+
+        classifier.fit(ytrain, xtrain)
+        y_pred = classifier.predict(xtest)
+
         accuracies.append(compute_accuracy(y_pred, ytest))
+
     return accuracies
+
+def build_k_indices(y, k_fold, seed=1):
+    """build k indices for k-fold."""
+
+    num_row = y.shape[0]
+    interval = int(num_row / k_fold)
+    np.random.seed(seed)
+    indices = np.random.permutation(num_row)
+    k_indices = [indices[k * interval: (k + 1) * interval]
+                 for k in range(k_fold)]
+    return np.array(k_indices)
 
 def find_max_hyperparam(classifier, lambdas):
     """
