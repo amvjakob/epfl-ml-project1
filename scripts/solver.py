@@ -3,7 +3,7 @@
 
 import numpy as np
 
-def gradient_descent(function_object, w, max_evaluations, verbose=False, *args):
+def gradient_descent(function_object, w, max_evaluations, *args, verbose=False):
     """
     Find minimum
 
