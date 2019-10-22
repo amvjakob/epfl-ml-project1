@@ -80,7 +80,7 @@ def remove_features(data, features, feats, verbose=False):
 
     return np.delete(data, idx_to_remove, 1), np.delete(features, idx_to_remove) 
 
-def remove_features_on_pct(data, features, pct_sup verbose=False):
+def remove_features_on_pct(data, features, pct_sup, verbose=False):
     """
     This function removes features from the data and the features list
     depending on the percentage of NaN they contain
@@ -121,7 +121,7 @@ def binarize_undefined(data, features, feats, verbose=False):
             idx_to_analyze = features.index(feat)
 
             # expand data with 1 where value is defined, 0 where value is undefined
-            data = np.c_[data, data[:, idx_to_analyze] != -999]
+            data = np.c_[data, data[:, 2*(idx_to_analyze] != -999) - 1]
 
             # add feature name
             features.append(features[idx_to_analyze] + "_NAN_BINARIZED")
