@@ -108,8 +108,8 @@ class LogisticRegression:
         self.w = np.zeros(d)
 
         # fit weights
-        self.w, f = solver.gradient_descent(self.function_object, self.w, self.max_evaluations,
-                                 self.verbose, y, X)
+        self.w, f = solver.gradient_descent(self.function_object, self.w, 
+                                            self.max_evaluations, y, X, verbose=self.verbose)
 
     def sigmoid(self, t):
         """
@@ -245,7 +245,7 @@ class LogisticRegressionKernel(Kernel):
     
         u = np.zeros(K.shape[1])
         u, loss = solver.gradient_descent(loss_function, u, self.max_evals, 
-                                          self.verbose, y, K)
+                                          y, K, verbose=self.verbose)
         
         return u
     
@@ -277,7 +277,7 @@ class LeastSquaresGDKernel(Kernel):
     
         u = np.zeros(K.shape[1])
         u, loss = solver.gradient_descent(loss_function, u, self.max_evals, 
-                                          self.verbose, y, K)
+                                          y, K, verbose=self.verbose)
         
         return u
     
