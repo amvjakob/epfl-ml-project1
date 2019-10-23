@@ -53,15 +53,16 @@ def remove_NaN_features(x, threshold=0.0):
     """
     n, d = x.shape
     result = []
+    X = x.copy()
 
     for j in range(d):
         # get examples where the feature j is NaN
-        positions = x[:, j] == -999
+        positions = X[:, j] == -999
         if np.mean(positions) < threshold:
-            if not result:
-                result = x[:, j]
+            if not len(result):
+                result = X[:, j]
             else:
-                result = np.c_[result, x[:, j]]
+                result = np.c_[result, X[:, j]]
 
     return result
 
