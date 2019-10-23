@@ -167,7 +167,7 @@ class LogisticRegressionDecisionTree(LogisticRegression):
         X_E = X[massNotNaN,:]
         
         super().fit(y_E, X_E)
-        """
+    """
         
         
     def predict(self, X):
