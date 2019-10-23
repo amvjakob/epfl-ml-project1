@@ -78,6 +78,87 @@ class LeastSquares:
         """
 
         return np.sign(X @ self.w)
+    
+class LeastSquaresL2(LeastSquares):
+    
+    def __init__(self, lambda_, verbose=False, max_evaluations=100):
+        """
+        Constructor
+
+        :param lambda: regularization strength
+        :param verbose: print out information
+        :param max_evaluations: maximum number of evaluations
+        """
+        self.lambda_ = lambda_
+        super().__init__(verbose, max_evaluations)
+    
+    def fit(self, y, X):
+        """
+        Finds weights to fit the data to the model
+
+        :param y: answers
+        :param X: data
+        """
+
+        # dimensions
+        n, d = X.shape
+
+        # initial weight vector
+        self.w = np.zeros(d)
+
+        # find weights
+        self.w = np.linalg.solve(X.T @ X + n * self.lambda_ * np.eye(d), X.T @ y)
+        
+    def function_object(self, w, y, X):
+        """
+        Function Object.
+
+        :param y: answers
+        :param X: data
+        :param w: weights
+        :return: loss, gradient
+        """
+        
+        f, g = super().function_object(w, y, X)
+
+        # add regularization
+        f += self.lambda_ / 2 * w.dot(w)
+        g += self.lambda_ * w
+
+        return f, g
+    
+class LeastSquaresL1(LeastSquares):
+    """L2 Regularized Logistic Regression"""
+    
+    def __init__(self, lambda_, verbose=False, max_evaluations=100):
+        """
+        Constructor
+
+        :param lambda: regularization strength
+        :param verbose: print out information
+        :param max_evaluations: maximum number of evaluations
+        """
+        self.lambda_ = lambda_
+        super().__init__(verbose, max_evaluations)
+    
+    def fit(self, y, X):
+        """
+        Finds weights to fit the data to the model
+
+        :param y: answers
+        :param X: data
+        """
+
+        # dimensions
+        n, d = X.shape
+
+        # initial weight vector
+        self.w = np.zeros(d)
+
+        # fit weights
+        self.w, f = solver.gradient_descent_L1(self.function_object, self.w, self.lambda_,
+                                               self.max_evaluations, y, X, verbose=self.verbose)
+        
 
 class LogisticRegression:
     """Logistic Regression"""
@@ -180,6 +261,41 @@ class LogisticRegressionDecisionTree(LogisticRegression):
 
 
 class LogisticRegressionL2(LogisticRegression):
+    """L2 Regularized Logistic Regression"""
+
+    def __init__(self, lambda_=1.0, verbose=False, max_evaluations=100):
+        """
+        Constructor
+
+        :param lambda_: lambda of L2 regularization
+        :param verbose: print out information
+        :param max_evaluations: maximum number of evaluations
+        """
+        self.verbose = verbose
+        self.max_evaluations = max_evaluations
+        self.lambda_ = lambda_
+       
+        
+    def fit(self, y, X):
+        """
+        Finds weights to fit the data to the model
+
+        :param y: answers
+        :param X: data
+        """
+
+        # dimensions
+        n, d = X.shape
+
+        # initial weight vector
+        self.w = np.zeros(d)
+
+        # fit weights
+        self.w, f = solver.gradient_descent_L1(self.function_object, self.w, self.lambda_,
+                                               self.max_evaluations, y, X, verbose=self.verbose)
+
+    
+class LogisticRegressionL1(LogisticRegression):
     """L2 Regularized Logistic Regression"""
 
     def __init__(self, lambda_=1.0, verbose=False, max_evaluations=100):
