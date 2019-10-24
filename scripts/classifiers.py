@@ -4,6 +4,7 @@
 import solver
 import implementations
 import dataprocessing
+from dataprocessing import log_1_plus_exp_safe
 import numpy as np
 import math
 

@@ -24,26 +24,6 @@ def standardize(x, mean=None, std=None):
     return (x - mean) / std, mean, std
 
 
-def expand_2(X):
-    """
-    Augments a matrix to the second degree
-
-    :param X: data
-    :return: data augmented to second degree
-    """
-    result = X.copy()
-    result = np.c_[result, np.power(result, 2)]
-    n, d = X.shape
-    for j in range(d):
-        print(j)
-
-        new = result[:, j][:, np.newaxis] * result[:, j + 1:]
-        if len(new) > 0:
-            result = np.c_[result, new]
-
-    return result
-
-
 def remove_NaN_features(x, threshold=0.0):
     """
     Removes the feature if it has more than a certain threshold of -999 value
@@ -204,6 +184,40 @@ def cross_validate(y, tx, classifier, ratio, n_iter):
         accuracy[i] = compute_accuracy(y_pred, test_y)
 
     return accuracy
+
+def cross_validate_kfold(y, x, classifier, k_fold):
+    """
+    Cross Validate with k fold, without shuffling dataset
+
+    :param y: y
+    :param tx: data
+    :param classifier: classifier for model fitting
+    :param train: train function (fitting function)
+    :param predict: prediction function
+    :param k_fold: numbers of folds chosen
+    :return: accuracy
+    """
+
+    accuracies = []
+
+    # Splitting indices in fold
+    ind = build_k_indices(x, k_fold)
+
+    # Computations for each split in train and test
+    for i in range(0, k_fold):
+
+        ind_sort = np.sort(ind[i])
+        ind_opp = np.array(sorted(set(range(0, x.shape[0])).difference(ind_sort)))
+
+        xtrain, xtest = x[ind_opp], x[ind[i]]
+        ytrain, ytest = y[ind_opp], y[ind[i]]
+
+        classifier.fit(ytrain, xtrain)
+        y_pred = classifier.predict(xtest)
+
+        accuracies.append(compute_accuracy(y_pred, ytest))
+
+    return accuracies
 
 
 def find_max_hyperparam(classifier, lambdas):
