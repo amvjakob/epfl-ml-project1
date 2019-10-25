@@ -36,24 +36,24 @@ The models above mentionned are either resolved directly or thanks to a Gradient
 
 Includes all the functions needed for the feature engineering and further steps such as cross-validation and optimisation. 
 
-*standardize
-*remove_NaN_features, remove_features
-*replace_NaN_by_mean/replace_NaN_by_median
-*binarize_undefined
+* *standardize*
+* *remove_NaN_features, remove_features*
+* *replace_NaN_by_mean/replace_NaN_by_median*
+* *binarize_undefined*
 
-*compute_accuracy, cross_validate, cross_validate_kfold
-*find_max_hyperparam
-*log_1_plus_exp_safe
+* *compute_accuracy, cross_validate, cross_validate_kfold*
+* *find_max_hyperparam*
+* *log_1_plus_exp_safe*
 
 ---
 ### `implementation.py`
 
 List of functions that had to be implemented in the framework of the project. For the sake of completeness, the solvers above mentionned are encoded here as well. 
 
-*least_squares, least_squaresGD, batch_iter,  least_squaresSGD
-*ridge_regression, lasso_regression
-*logistic_regression, reg_logistic_regression, logistic_regression_sparse
-*GD, GD_linesearch, GD_L1
+* *least_squares, least_squaresGD, batch_iter,  least_squaresSGD*
+* *ridge_regression, lasso_regression*
+* *logistic_regression, reg_logistic_regression, logistic_regression_sparse*
+* *GD, GD_linesearch, GD_L1*
 
 ---
 ### `proj1_helpers.py`
