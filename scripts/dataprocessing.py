@@ -15,10 +15,10 @@ def standardize(x, mean=None, std=None):
     :return: standardized data
     """
 
-    if not mean:
+    if mean is None:
         mean = np.mean(x, axis=0)
 
-    if not std:
+    if std is None:
         std = np.std(x, axis=0)
 
     return (x - mean) / std, mean, std
@@ -26,7 +26,7 @@ def standardize(x, mean=None, std=None):
 
 def remove_NaN_features(x, threshold=0.0):
     """
-    Removes the feature if it has more than a certain threshold of -999 value
+    Removes the feature if it has more than a certain percentage of -999 values.
 
     :param x: data
     :param threshold: data
@@ -49,10 +49,11 @@ def remove_NaN_features(x, threshold=0.0):
 
 def replace_NaN_by_mean(x):
     """
-    Replaces the -999 values of x by the mean of that feature vector
+    Replaces the -999 values of x by the mean of that feature vector.
 
     :param x: data
     """
+    
     n, d = x.shape
     result = x.copy()
 
@@ -72,6 +73,7 @@ def replace_NaN_by_median(x):
 
     :param x: data
     """
+    
     n, d = x.shape
     result = x.copy()
 
@@ -85,14 +87,13 @@ def replace_NaN_by_median(x):
     return result
 
 
-def remove_features(data, features, feats, verbose=False):
+def remove_features(data, features, feats):
     """
-    This function removes features from the data and the features list
+    This function removes features from the data and the features list.
 
     :param data: tX data
     :param features: list of all features from load_csv
     :param feats: array of strings containing the features we want to remove
-    :param verbose: output list of features successfully removed
     :return: new data, new features
     """
 
@@ -104,13 +105,10 @@ def remove_features(data, features, feats, verbose=False):
             idx_to_remove[i] = features.index(feat)
             removed.append(feat)
 
-    if verbose:
-        print("Features removed:", *removed, sep='\n')
-
     return np.delete(data, idx_to_remove, 1), np.delete(features, idx_to_remove)
 
 
-def binarize_undefined(data, features, feats, verbose=False):
+def binarize_undefined(data, features, feats):
     """
     Additive Binarization of NaNs in a database.
 
@@ -119,7 +117,6 @@ def binarize_undefined(data, features, feats, verbose=False):
 
     :param data: data with NaN values
     :param feats: features to take into account for additive binarization
-    :param verbose: output features that are successfully additively binarized
     :return: new data
     """
 
@@ -129,7 +126,7 @@ def binarize_undefined(data, features, feats, verbose=False):
 
         # check if wanted feature is in feature list
         if feat in features:
-            # find index where to analyze feature
+            # find index of feature to analyze
             idx_to_analyze = features.index(feat)
 
             # expand data with 1 where value is defined, 0 where value is undefined
@@ -139,18 +136,15 @@ def binarize_undefined(data, features, feats, verbose=False):
             features.append(features[idx_to_analyze] + "_NAN_BINARIZED")
             done.append(feat)
 
-    if verbose:
-        print("Features for which additive binarization was performed:", *done, sep='\n')
-
     return data, features
             
             
 def cross_validate(y, tx, classifier, ratio, n_iter):
     """
-    Cross Validate
+    Cross-validate classifier.
 
-    Shuffles dataset randomly n_iter times, divides tx in train and
-    test to compute accuracy.
+    Shuffles dataset randomly, divides tx in train and
+    test based on ration to compute accuracy, repeats procedure n_iter times.
 
     :param y: y
     :param tx: data
@@ -185,9 +179,21 @@ def cross_validate(y, tx, classifier, ratio, n_iter):
 
     return accuracy
 
+
+def build_k_indices(y, k_fold, seed=1):
+    """build k indices for k-fold cross-validation."""
+    
+    num_row = y.shape[0]
+    interval = int(num_row / k_fold)
+    np.random.seed(seed)
+    indices = np.random.permutation(num_row)
+    k_indices = [indices[k * interval: (k + 1) * interval]
+                 for k in range(k_fold)]
+    return np.array(k_indices)
+
 def cross_validate_kfold(y, x, classifier, k_fold):
     """
-    Cross Validate with k fold, without shuffling dataset
+    K-fold cross-validation of a classifier.
 
     :param y: y
     :param tx: data
@@ -220,56 +226,129 @@ def cross_validate_kfold(y, x, classifier, k_fold):
     return accuracies
 
 
-def find_max_hyperparam(classifier, lambdas):
-    """
-    Find Max Hyperparam
-
-    Finds optimal lambda_ hyperparameter (lowest loss).
-
-    :param classifier: lambda classifier function
-    :param lambdas: array of possible lambdas
-    :return: optimal trio of lambda_, weight, loss
-    """
-
-    w_best = []
-    loss_best = np.inf
-    lambda_best = 0
-
-    for lambda_ in lambdas:
-        w, loss = classifier(lambda_)
-        print("Testing hyperparameter value %f - loss: %.3f" % (lambda_, loss))
-        if loss < loss_best:
-            w_best = w
-            loss_best = loss
-            lambda_best = lambda_
-
-    return lambda_best, w_best, loss_best
-
-
 def compute_accuracy(ypred, yreal):
     """
-    Compute Accuracy
+    Compute accuracy of prediction.
 
     :param ypred: predicted y
     :param yreal: real y
-    :return: elementwise accuracy
+    :return: mean accuracy
     """
 
-    return np.sum(ypred == yreal) / len(yreal)
+    return np.mean(ypred == yreal)
 
 
-def log_1_plus_exp_safe(x):
+def split_data(features, X, y=None):
     """
-    Computes log(1+exp(x)) avoiding overflow/underflow issues
-
-    :param x: input
-    :return: log(1+exp(x))
+    Splits the data matrix X into partitions based on the integer feature 'PRI_jet_num'
+    
+    :param features: feature names
+    :param X: examples
+    :param y: labels (optional)
+    :return indices of split for every subset, X_split, y_split
     """
-    out = np.log(1+np.exp(x))
-    out[x > 100] = x[x>100]
-    out[x < -100] = np.exp(x[x < -100])
-    return out
+    # features that are undefined for some subsets
+    undef_feature_for = {
+        'DER_deltaeta_jet_jet'   : [0, 1],
+        'DER_mass_jet_jet'       : [0, 1],
+        'DER_prodeta_jet_jet'    : [0, 1],
+        'DER_lep_eta_centrality' : [0, 1],
+        'PRI_jet_num'            : [0, 1, 2, 3],
+        'PRI_jet_leading_pt'     : [0],
+        'PRI_jet_leading_eta'    : [0],
+        'PRI_jet_leading_phi'    : [0],
+        'PRI_jet_subleading_pt'  : [0, 1],
+        'PRI_jet_subleading_eta' : [0, 1],
+        'PRI_jet_subleading_phi' : [0, 1],
+        'PRI_jet_all_pt'         : [0]
+    }
+
+    # the feature based on which we split X
+    jet_num_feature = "PRI_jet_num"
+    jet_levels = 4
+
+    # build valid features for every subset of X
+    features_split = []
+    for jet in range(jet_levels):
+        valid_features = [ f for f in features if not ((f in undef_feature_for) and (jet in undef_feature_for[f])) ]
+        features_split.append(valid_features)
+        
+    # split data based on jet level (vertical split)
+    X_ = X.copy()
+    
+    split_indices = [
+        X_[:,features.index(jet_num_feature)] == i for i in range(jet_levels)
+    ]
+    X_split = [
+        X_[X_[:,features.index(jet_num_feature)] == i,:] for i in range(jet_levels)
+    ]
+    if y is None:
+        y_split = None
+    else:
+        y_split = [
+            y[X_[:,features.index(jet_num_feature)] == i] for i in range(jet_levels)
+        ]
+
+    # only keep relevant features (horizontal split)
+    for i, x in enumerate(X_split):
+        indices = [ features.index(feature) for feature in features_split[i] ]
+        indices_bool = [ e in indices for e in range(len(features)) ]
+        X_split[i] = x[:,indices_bool]
+        
+    return split_indices, X_split, y_split
 
 
+def build_poly_no_interaction(X, degree):
+    """
+    Build a polynomial expansion of X without interaction terms.
+    
+    :param X: data
+    :param degree: degree of expansion
+    """
+    result = X.copy()
+    for d in range(2, degree+1):
+        # np.power() behaves strangely sometimes, so we do the multiplication manually
+        power = X.copy()
+        for i in range(d - 1):
+            power = power * X
+            
+        result = np.hstack((result, power))
+        
+    return result
 
+def build_X(X, d_int, d_sq):
+    """
+    Expand X with integer and/or half-powers.
+    
+    :param X: examples
+    :param d_int: degree of integer powers
+    :param d_sq: ceil of degree of half-powers (expansion will be up to d_sq - 0.5)
+    """    
+    X_ = X.copy()
+    
+    ints = []
+    sqrts = []
+    
+    # build integer powers
+    if d_int > 0:
+        ints = build_poly_no_interaction(X_, d_int)
+      
+    # build half-powers (0.5, 1.5, 2.5, etc.)
+    if d_sq > 0:
+        sqrts = np.sqrt(np.abs(X_))
+        if d_sq > 1:
+            width = sqrts.shape[1]
+            int_power = np.abs(build_poly_no_interaction(X_, d_sq - 1))
+            
+            half_power = sqrts.copy()
+            for i in range(d_sq - 1):
+                # add half power i - 0.5
+                half_power = np.hstack((half_power, sqrts * int_power[:,(width*i):(width*(i+1))]))
+                
+            sqrts = np.hstack((sqrts, half_power))
+    else:
+        return ints
 
+    # concat
+    X_ = np.hstack((ints, sqrts))
+    return X_

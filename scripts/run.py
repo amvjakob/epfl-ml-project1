@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from proj1_helpers import *
 from implementations import *
+from dataprocessing import *
 from classifiers import *
 from solver import *
 
@@ -14,83 +15,81 @@ TRAIN DATA PULL
 """
 
 # fetch train data
-DATA_TRAIN_PATH = '../data/train.csv'
+DATA_TRAIN_PATH = "../data/train.csv"
 y, tX, ids, features = load_csv_data(DATA_TRAIN_PATH, sub_sample=False)
-X = tX
 
 """
 FEATURE ENGINEERING
 """
 
-# additive binarization of NaN values
-feats_binarization = []
-X, features = binarize_undefined(X, features, feats_binarization)
+# split data
+indices_split, X_split, y_split = split_data(features, tX, y)
 
-# removing unnecessary features
-feats_removal = []
-X, features = remove_features(X, features, feats_removal)
+# standardize data
+X_split_std, mean_split, std_split = [], [], []
+for X in X_split: 
+    # remove features with more than 20% of NaN and standardize
+    X_std, mean_std, std_std = standardize(remove_NaN_features(X, 0.2))
+    
+    X_split_std.append(X_std)
+    mean_split.append(mean_std)
+    std_split.append(std_std)
 
-# handling NaN values by mean replacement
-X = replace_NaN_by_mean(X)
+# model values
+best_lambda = 3.5938136638046255e-12
+best_deg_int = 10
+best_deg_sq = 5
 
-# standardization
-#TODO: decide whether or not we standardize
-# X, mean, std = standardize(X)
+def model_split_data(X):
+    return build_X(X, best_deg_int, best_deg_sq)
 
-# adds offset - after standardization because the offset has variance 0
-X = np.c_[np.ones(len(y)), X]
+# build expanded data
+X_split_poly = [ model_split_data(X) for X in X_split_std ]
+
 
 """
 FIT AND PREDICT
 """
 
-# choice of classifier
-classifier = LeastSquares()
+# train actual models
+models = []
+for X_, y_ in zip(X_split_poly, y_split):
+    lse = LeastSquaresL2(best_lambda)
+    lse.fit(y_, X_)
+    models.append(lse)
 
-# fitting
-#classifier.fit(y, X)
-
-# prediction
-#weight = classifier.predict(X)
-
-
-accuracy = cross_validate(y, X, classifier, 0.8, 10)
-
-
+    
 """
 TEST DATA PULL
 """
 
 # fetch test data
-DATA_TEST_PATH = '../data/test.csv'
-y_test, tX_test, ids_test, features_test = load_csv_data(DATA_TEST_PATH)
-X_test = tX_test
+DATA_TEST_PATH = "../data/test.csv"
+y_test, tX_test, ids_test, features_test = load_csv_data(DATA_TEST_PATH, sub_sample=False)
 
-"""
-TEST DATA FEATURE ENGINEERING
-to fit dimensionality, apply feature engineering to test data
-"""
+# split
+test_split_indices, X_test_split, _ = split_data(features_test, tX_test)
 
-# additive binarization of NaN values
-X_test, features_test = binarize_undefined(X, features_test, feats_binarization)
+# standardize
+X_test_split_std = []
+for X, mean, std in zip(X_test_split, mean_split, std_split): 
+    # remove features with more than 20% of NaN and standardize
+    X_test_std, _, _ = standardize(remove_NaN_features(X, 0.2), mean, std)
+    
+    X_test_split_std.append(X_test_std)
+    
+# expand
+X_test_split_poly = [ model_split_data(X) for X in X_test_split_std ]
 
-# removing unnecessary features
-X_test, features_test = remove_features(X, features_test, feats_removal)
+# predictions using new model
+y_pred = np.ones(tX_test.shape[0])
+for model, X, indices in zip(models, X_test_split_poly, test_split_indices):
+    y_pred[indices] = model.predict(X)
 
-# handling NaN values by mean replacement (with train data mean)
-X_test = replace_NaN_by_mean(X_test)
-
-# standardization (with train data attributes)
-#TODO: decide whether or not we standardize
-# X_test, _, _ = standardize(X_test, mean, std)
-
-# adds offset
-X_test = np.c_[np.ones(len(y_test)), X_test]
 
 """
 OUTPUT PREDICTIONS
 """
 
-OUTPUT_PATH = '../results/predictions.csv'
-y_pred = predict_labels(weight, tX_test)
+OUTPUT_PATH = "../results/predictions.csv"
 create_csv_submission(ids_test, y_pred, OUTPUT_PATH)
