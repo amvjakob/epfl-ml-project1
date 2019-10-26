@@ -1,6 +1,9 @@
 # ignore data files as they're quite big
 data/*
 
+# ignore generated figures
+figures/*
+
 # ignore jupyter cache and checkpoints
 scripts/.ipynb_checkpoints/*
 scripts/__pycache__/*
