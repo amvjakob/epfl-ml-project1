@@ -1,8 +1,8 @@
 # The Higgs boson Machine Learning challenge
 
-The Higgs boson is an elementary particle which explains why other particles have a mass. Measurements stemming from high-speed collisions of protons at the European Organization for Nuclear Research (CERN) were made available with the aim of predicting whether the collision by-products are an actual boson. 
+The Higgs boson is an elementary particle which explains why other particles have a mass. Measurements stemming from high-speed collisions of protons at the European Organization for Nuclear Research (CERN) were made available with the aim of predicting whether the collision by-products are an actual boson or background noise. 
 
-A first part dedicated to descriptive statistics allows for a broader overview of the dataset structure and particularities. 
+A first part dedicated to descriptive statistics allows a broader overview of the dataset structure and particularities. 
 
 A preprocessing step can include different combinations of the following methods: (1) splitting the dataset on the feature PRI-jet-num, (2) replacing undefined datapoints by the median/mean or binarize them, (3) performing a polynomial expansion, (4) standardizing and eventually (5) handling outliers. 
 
@@ -14,7 +14,7 @@ A Least Squares and Logistic Regressions are subsequently implemented and legiti
 No external libraries are necessary besides Numpy and Matplolib for visualisation. 
 
 
-## Description
+## Codes description
 
 
 ### `run.py`
@@ -51,23 +51,36 @@ Useful classes for Least Squares and Logistic Regression, to which either L1 or 
 ---
 ### `solver.py`
 
-The models in `classifier.py` are either resolved directly or with gradient/subgradient descent. The file contains two functions, *gradient_descent* and *gradient_descent_L1* that are necessary within the `classifier.py` file.
+The models in `classifier.py` are either resolved directly or with gradient/subgradient descent. The file contains two functions, *gradient_descent* and *gradient_descent_L1* that are used within the `classifier.py` file.
 
 ---
 ### `proj1_helpers.py`
 
-*load_csv_data*, *predict_labels* and *create_csv_submission* that were given as helper functions. 
+Functions *load_csv_data*, *predict_labels* and *create_csv_submission* that were given as helpers. 
 
 ---
 
 ### `plotting.py`
 
-Contains function to produce visual comparisons of the accuracies obtained with different combination of data preprocessing steps and models applied. 
+The function *boxplot_models* allows a visual comparison of the accuracies obtained with different combination of data preprocessing steps and models applied. A second function *surface3d_model* is dedicated to the optimization steps. It depicts cross-validated accuracies as a function of the polynomial expansion degree and the L2 regularization hyperparameter. 
 
 ---
 ### `project1.ipynb`
 
-That jupyter notebook reflects the thought process. It starts with splitting the dataset on the feature PRI-jet-num. The different models are then tested and optimized.
+The notebook starts with splitting the dataset on feature PRI-jet-num. After standardizing, Least Squares and Logistic Regressions are tested, both being as well L1 and L2 regularized. A Grid Search is performed on the polynomial expansion degree and the regularization hyperparameter. The final model can then be trained and the submission file produced. 
+
+---
+### `myrun.ipynb`
+
+That jupyter notebook reflects the score improvement steps, which are :
+* (A) Base
+* (B) Base with offset and standardisation
+* (C) Base with offset, standardisation, and NaN to median
+* (D) Base with offset, standardisation, additive binarization, removal of all NaN features except for *DER-mass-mmc*
+* (E) Base with offset, standardisation, NaN to median, and outliers capped to 5% and 95% percentiles 
+* (F) Data split in function of *PRI-jet-num*, and L2 regularized with $\lambda = 10^{-4}$ 
+* (G) Data split in function of *PRI-jet-num*, polynomial expansion using d<sub>int</sub>= 2, d<sub>sqrt</sub>= 1 and L2 regularized with $\lambda = 10^{-4}$
+* (H) Data split in function of *PRI-jet-num*, polynomial expansion using d<sub>int</sub>=11, d<sub>sqrt</sub>= 3, and L2 regularized with $\lambda = 1.46 \cdot 10^{-8}$
 
 ---
 ### `visualisation.ipynb`
@@ -85,4 +98,4 @@ Dedicated to descriptive statistics, its output is a figure standing for a visua
 
 ## Acknowledgments
 
-CF RAPPORT
+We would like to acknowledge the use and adaption of code provided my Mark Schmidt during the machine learning courses CPSC 340 and CPSC 540 at UBC, Vancouver.
